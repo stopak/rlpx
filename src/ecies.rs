@@ -91,7 +91,6 @@ impl Ecies {
         })
     }
 
-
     pub fn get_auth_body(&self) -> BytesMut {
         let msg = self.static_shared_key ^ self.nonce;
 
@@ -192,17 +191,13 @@ impl Ecies {
                 egress_mac: Mac::new(mac_secret),
                 ingress_mac: Mac::new(mac_secret),
 
-                // ingress_aes: aes::Aes256::new(GenericArray::from_slice(aes_secret.as_bytes())),
-                // egress_aes: aes::Aes256::new(GenericArray::from_slice(aes_secret.as_bytes())),
                 ingress_aes: Aes256Ctr64BE::new(aes_secret.as_ref().into(), iv.as_ref().into()),
                 egress_aes: Aes256Ctr64BE::new(aes_secret.as_ref().into(), iv.as_ref().into()),
             };
 
-            // s.egress_mac.update((mac_secret ^ self.nonce).as_bytes());
             s.egress_mac.update((mac_secret ^ remote_nonce).as_bytes());
             s.egress_mac.update(self.init_msg.as_ref().unwrap());
 
-            // s.ingress_mac.update((mac_secret ^ remote_nonce).as_bytes());
             s.ingress_mac.update((mac_secret ^ self.nonce).as_bytes());
             s.ingress_mac.update(self.ack_msg.as_ref().unwrap());
 
@@ -217,7 +212,6 @@ impl Ecies {
         let r = SecretKey::new(&mut secp256k1::rand::thread_rng());
 
         let s = get_shared_key(&r, &self.remote_public_key);
-        // println!("e shared key: {}", S);
 
         let mut key = [0_u8; 32];
         kdf(s, &[], &mut key);
@@ -338,7 +332,7 @@ impl Ecies {
 
         //decode header
         s.ingress_aes.apply_keystream(header);
-        
+
         //Calculate frame_size
         let frame_size = Self::decode_frame_size(header);
 
@@ -380,7 +374,7 @@ impl Ecies {
         out.reserve(32); // 16 for header, 16 for MAC
         out.extend_from_slice(&header);
         out.extend_from_slice(mac.as_bytes());
-        
+
         //Write body, calculate len to match 16 bytes buffor chunks
         let len = if data.len() % 16 == 0 {
             data.len()
@@ -389,7 +383,6 @@ impl Ecies {
         };
         let old_len = out.len();
         out.resize(old_len + len, 0);
-
 
         let encrypted = &mut out[old_len..old_len + len];
         encrypted[..data.len()].copy_from_slice(data);
@@ -402,18 +395,16 @@ impl Ecies {
 
         out
     }
-
 }
 
-#[cfg(test)] 
+#[cfg(test)]
 mod test {
-    use secp256k1::{SECP256K1, PublicKey};
-    use crate::errors::Errors;
     use super::*;
+    use crate::errors::Errors;
+    use secp256k1::{PublicKey, SECP256K1};
 
     #[test]
     fn encrypt_decrypt_auth() -> Result<(), Box<dyn Error>> {
-
         let prikey1 = SecretKey::new(&mut secp256k1::rand::thread_rng());
         let prikey2 = SecretKey::new(&mut secp256k1::rand::thread_rng());
 
@@ -432,7 +423,7 @@ mod test {
         let auth = &auth_body.to_vec()[..];
 
         if decrypted != auth {
-            return Err(Box::new(Errors::EncryptionDecryptionFailed))
+            return Err(Box::new(Errors::EncryptionDecryptionFailed));
         }
 
         Ok(())

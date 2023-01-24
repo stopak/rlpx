@@ -2,8 +2,8 @@ pub type Aes128Ctr64BE = ctr::Ctr64BE<aes::Aes128>;
 pub type Aes256Ctr64BE = ctr::Ctr64BE<aes::Aes256>;
 
 use aes::cipher::{KeyIvInit, StreamCipher};
-use secp256k1::{SecretKey, PublicKey, SECP256K1};
-use primitive_types::{H256, H128};
+use primitive_types::{H128, H256};
+use secp256k1::{PublicKey, SecretKey, SECP256K1};
 
 use hmac::{Hmac, Mac};
 use sha2::{Digest, Sha256};
@@ -74,13 +74,10 @@ pub fn mac(key: &[u8], input: &[&[u8]], auth_data: &[u8]) -> H256 {
     H256::from_slice(&hmac.finalize().into_bytes())
 }
 
-
 pub fn aes_ctr(key: H128, iv: H128, m: &mut [u8]) {
     let mut cipher = Aes128Ctr64BE::new(key.as_ref().into(), iv.as_ref().into());
     cipher.apply_keystream(m);
 }
-
-
 
 /// Convenience function for calculation of keccak256 hash
 pub fn keccak256(data: &[&[u8]]) -> H256 {

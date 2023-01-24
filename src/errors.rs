@@ -6,7 +6,7 @@ pub enum Errors {
     SocketClosedByRemote,
     PublicKeyError,
     NotHandled,
-    #[cfg(test)] 
+    #[cfg(test)]
     EncryptionDecryptionFailed,
 }
 
@@ -16,10 +16,7 @@ impl fmt::Display for Errors {
     }
 }
 
-
-impl Error for Errors {
-
-}
+impl Error for Errors {}
 
 #[derive(Debug)]
 pub enum ECIESError {
@@ -36,7 +33,4 @@ impl fmt::Display for ECIESError {
     }
 }
 
-
-impl Error for ECIESError {
-
-}
+impl Error for ECIESError {}

@@ -1,5 +1,5 @@
-use aes::cipher::{KeyInit, generic_array::GenericArray, BlockEncrypt};
-use primitive_types::{H256, H128};
+use aes::cipher::{generic_array::GenericArray, BlockEncrypt, KeyInit};
+use primitive_types::{H128, H256};
 use sha3::{Digest, Keccak256};
 
 pub fn aes256_encrypt(key: H256, m: &mut [u8]) {
@@ -28,7 +28,7 @@ impl Mac {
 
     pub fn update_header(&mut self, header_ciphertext: &[u8]) {
         let mut header_mac_seed = self.digest().to_fixed_bytes();
-        //header-mac-seed = aes(mac-secret, keccak256.digest(egress-mac)[:16]) 
+        //header-mac-seed = aes(mac-secret, keccak256.digest(egress-mac)[:16])
         aes256_encrypt(self.secret, &mut header_mac_seed);
 
         //^ header-ciphertext
@@ -53,21 +53,7 @@ impl Mac {
         }
         self.hasher.update(encrypted);
     }
-    // pub fn update_body(&mut self, data: &[u8]) {
-    //     self.hasher.update(data);
-    //     let prev = self.digest();
 
-
-    //     let aes = Aes256Enc::new_from_slice(self.secret.as_ref()).unwrap();
-    //     let mut encrypted = self.digest().to_fixed_bytes();
-    //     aes.encrypt_padded::<NoPadding>(&mut encrypted, H128::len_bytes())
-    //         .unwrap();
-    //     for i in 0..16 {
-    //         encrypted[i] ^= prev[i];
-    //     }
-    //     self.hasher.update(encrypted);
-    // }
-    
     /// keccak256.digest(egress-mac)[:16]
     pub fn digest(&self) -> H128 {
         H128::from_slice(&self.hasher.clone().finalize()[0..16])

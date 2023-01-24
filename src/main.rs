@@ -1,14 +1,14 @@
-use secp256k1::{SecretKey};
+use secp256k1::SecretKey;
 use std::env;
 use std::error::Error;
 use tokio::io::AsyncWriteExt;
 use tokio::{io::AsyncReadExt, net::TcpStream};
 
 mod ecies;
-mod utils;
 mod errors;
 mod mac;
 mod rlpx;
+mod utils;
 
 use crate::ecies::Ecies;
 use crate::errors::Errors;
@@ -25,20 +25,18 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
         let port = "30303";
 
         run(&ip.to_string(), &port.to_string(), &public_key.to_string()).await?;
-
-        // println!("Invalid number of arguments! {}", args.len());
     } else {
-        let s : Vec<&str> = args[1].split("://").collect();
-        let s : Vec<&str> = s[1].split('@').collect();
+        let s: Vec<&str> = args[1].split("://").collect();
+        let s: Vec<&str> = s[1].split('@').collect();
 
         let public_key = s[0];
-        let s : Vec<&str> = s[1].split(':').collect();
+        let s: Vec<&str> = s[1].split(':').collect();
         let ip = s[0];
         let port = s[1];
 
         run(&ip.to_string(), &port.to_string(), &public_key.to_string()).await?;
     }
-    
+
     Ok(())
 }
 
@@ -52,7 +50,7 @@ async fn run(ip: &String, port: &String, key: &String) -> Result<(), Box<dyn Err
     println!("Remote public key {}", pub_k);
 
     let prikey = SecretKey::new(&mut secp256k1::rand::thread_rng());
-    
+
     let mut stream = TcpStream::connect(addr).await?;
     println!("Connected!");
 
@@ -81,13 +79,14 @@ async fn run(ip: &String, port: &String, key: &String) -> Result<(), Box<dyn Err
         client_version: "CustomRlpx".to_string(),
         capabilities: vec![],
         port: 0,
-        id: ecies.public_key
-    }.write_hello()?;
+        id: ecies.public_key,
+    }
+    .write_hello()?;
     let frame_out = ecies.write_frame(&hello);
     //Send Hello frame to server
     if stream.write(&frame_out).await? == 0 {
         return Err(Box::new(Errors::SocketClosedByRemote));
-    } 
+    }
 
     //Read Hello Message from server
 
@@ -102,7 +101,6 @@ async fn run(ip: &String, port: &String, key: &String) -> Result<(), Box<dyn Err
 
     let frame = ecies.read_frame(&mut buf[read_bytes as usize..resp])?;
 
-
     let message_id: u8 = rlp::decode(&[frame[0]])?;
     match message_id {
         0 => {
@@ -113,21 +111,20 @@ async fn run(ip: &String, port: &String, key: &String) -> Result<(), Box<dyn Err
             if pub_k == hello.id {
                 println!("Public key verification OK!");
             } else {
-                println!("Public key verification ERROR! Keys do not match {} {}", pub_k, hello.id);
+                println!(
+                    "Public key verification ERROR! Keys do not match {} {}",
+                    pub_k, hello.id
+                );
             }
-        },
+        }
         1 => {
             //Connection closed by peer
             println!("Received disconnect message, reason: {}", frame[1]);
 
-            return Err(Box::new(Errors::SocketClosedByRemote))
+            return Err(Box::new(Errors::SocketClosedByRemote));
         }
-        _ => {
-            return Err(Box::new(Errors::NotHandled))
-        }
+        _ => return Err(Box::new(Errors::NotHandled)),
     }
 
     Ok(())
 }
-
-
