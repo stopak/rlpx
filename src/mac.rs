@@ -32,7 +32,7 @@ impl Mac {
         aes256_encrypt(self.secret, &mut header_mac_seed);
 
         //^ header-ciphertext
-        for i in 0..header_ciphertext.len() {
+        for i in ..header_ciphertext.len() {
             header_mac_seed[i] ^= header_ciphertext[i];
         }
 
@@ -48,7 +48,7 @@ impl Mac {
         let mut encrypted = self.digest().to_fixed_bytes();
         aes256_encrypt(self.secret, &mut encrypted);
 
-        for i in 0..16 {
+        for i in ..16 {
             encrypted[i] ^= prev[i];
         }
         self.hasher.update(encrypted);
@@ -56,6 +56,6 @@ impl Mac {
 
     /// keccak256.digest(egress-mac)[:16]
     pub fn digest(&self) -> H128 {
-        H128::from_slice(&self.hasher.clone().finalize()[0..16])
+        H128::from_slice(&self.hasher.clone().finalize()[..16])
     }
 }

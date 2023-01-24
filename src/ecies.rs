@@ -132,7 +132,7 @@ impl Ecies {
         read_bytes: &mut u16,
     ) -> Result<(), Box<dyn Error>> {
         let payload_size = u16::from_be_bytes([buf[0], buf[1]]) as usize;
-        self.ack_msg = Some(Bytes::copy_from_slice(&buf[0..payload_size + 2]));
+        self.ack_msg = Some(Bytes::copy_from_slice(&buf[..payload_size + 2]));
 
         let ack_msg = self.decrypt(buf, read_bytes)?;
         self.read_ack(ack_msg)?;
@@ -279,7 +279,7 @@ impl Ecies {
             let mut key = [0_u8; 32];
             kdf(s, &[], &mut key);
 
-            let ke = H128::from_slice(&key[0..16]);
+            let ke = H128::from_slice(&key[..16]);
             //km is actually never used, only sha256(km) is used in calculation of d
             let sha_km = sha256(&key[16..32]);
 
@@ -361,7 +361,7 @@ impl Ecies {
         BigEndian::write_uint(&mut buf, data.len() as u64, 3);
 
         let mut header = [0_u8; 16];
-        header[0..3].copy_from_slice(&buf[0..3]);
+        header[..3].copy_from_slice(&buf[..3]);
         header[3..6].copy_from_slice(&[194, 128, 128]);
 
         let s = self.secrets.as_mut().unwrap();

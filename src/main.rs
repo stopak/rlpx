@@ -24,7 +24,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
         let ip = "195.201.207.37";
         let port = "30303";
 
-        run(&ip.to_string(), &port.to_string(), &public_key.to_string()).await?;
+        run(&ip, &port, &public_key).await?;
     } else {
         let s: Vec<&str> = args[1].split("://").collect();
         let s: Vec<&str> = s[1].split('@').collect();
@@ -34,13 +34,13 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
         let ip = s[0];
         let port = s[1];
 
-        run(&ip.to_string(), &port.to_string(), &public_key.to_string()).await?;
+        run(&ip, &port, &public_key).await?;
     }
 
     Ok(())
 }
 
-async fn run(ip: &String, port: &String, key: &String) -> Result<(), Box<dyn Error>> {
+async fn run(ip: &str, port: &str, key: &str) -> Result<(), Box<dyn Error>> {
     let addr = format!("{}:{}", ip, port);
     let id = hex::decode(key)?;
 
@@ -55,9 +55,9 @@ async fn run(ip: &String, port: &String, key: &String) -> Result<(), Box<dyn Err
     println!("Connected!");
 
     let mut ecies = Ecies::new(prikey, pub_k)?;
-    let auth = ecies.get_auth_encrypted();
+    let auth = ;
 
-    if stream.write(&auth).await? == 0 {
+    if stream.write(&ecies.get_auth_encrypted()).await? == 0 {
         return Err(Box::new(Errors::SocketClosedByRemote));
     }
 
@@ -82,9 +82,9 @@ async fn run(ip: &String, port: &String, key: &String) -> Result<(), Box<dyn Err
         id: ecies.public_key,
     }
     .write_hello()?;
-    let frame_out = ecies.write_frame(&hello);
+    
     //Send Hello frame to server
-    if stream.write(&frame_out).await? == 0 {
+    if stream.write(&ecies.write_frame(&hello)).await? == 0 {
         return Err(Box::new(Errors::SocketClosedByRemote));
     }
 

@@ -106,7 +106,7 @@ mod test {
     #[test]
     fn hello_decode() -> Result<(), Box<dyn Error>> {
         let frame = hex::decode("80f88b05b2476574682f76312e31302e32352d737461626c652d36393536386335352f6c696e75782d616d6436342f676f312e31382e35d3c58365746842c58365746843c684736e61700180b8404a3d84a401ea8a9cce6236a6f152927cceef917fc9027f09f4ac8215f26e908c907730b353caf0c7374b200da1e0e3dfef67edd9934318c73317520b1bcd25500000")?;
-        let rlp = Rlp::new(&frame[0..1]);
+        let rlp = Rlp::new(&frame[..1]);
 
         let i: u8 = rlp.as_val()?;
 
